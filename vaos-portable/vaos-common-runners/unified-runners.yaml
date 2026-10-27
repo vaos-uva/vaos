@@ -1,0 +1,89 @@
+# Unified Runners — VA Framework Executor Entry Points
+# Sourced from: va-auto-dev cli + vaos-ops-dir/processing/scripts/
+# Framework: VAOS / TheVaGroup | Version: 1.0.0
+
+id: va-unified-runners
+domain: execution
+layer: TASK
+version: "1.0.0"
+owner: Senior.Anatoly
+
+description: >
+  Unified runner definitions for vaos-portable. Runners provide deterministic,
+  domain-isolated execution of VA tasks using sh as base runtime.
+  Every runner emits unit-based output and conforms to va-base workflow rules.
+
+runtimes:
+  base:
+    - bun
+    - sh
+    - pnpm
+
+runner_types:
+
+  - identity: va-auto-dev
+    type: workflow-orchestrator
+    runtime: sh
+    entry: vaos-common-skills/va-auto-dev/SKILL.md
+    description: Composable auto-development skill set orchestrator
+    local: true
+    commands:
+      status: "auto-dev status"
+      list-skills: "auto-dev list-skills"
+      validate: "auto-dev validate"
+      audit: "auto-dev audit"
+      develop: "auto-dev develop <task>"
+
+  - identity: va-skill-runner
+    type: skill-loader
+    runtime: sh
+    entry: runners/va-skill-runner.sh
+    description: Loads and executes VA skills via skill tool
+    args:
+      - skill-name
+    output: unit-based
+
+  - identity: va-pipeline-runner
+    type: pipeline-orchestrator
+    runtime: sh
+    entry: runners/va-pipeline-runner.sh
+    description: Generic multi-stage pipeline runner (sh implementation)
+    stages_dir: runners/stages/
+    output_format: json
+    features:
+      - stage-isolation
+      - context-passing
+      - deterministic-execution
+
+  - identity: va-template-runner
+    type: template-processor
+    runtime: sh
+    entry: tools/va-template-processor.sh
+    description: Binds spec + params to VA templates
+    template_dir: vaos-common-templates/
+
+  - identity: va-shell-runner
+    type: shell-executor
+    runtime: sh
+    entry: runners/va-shell-runner.sh
+    description: Generic shell command runner with unit output
+
+execution_model:
+  layer: TASK
+  isolation: domain-isolated
+  output: unit-based
+  determinism: enforced
+  agent_identity: required
+
+conventions:
+  - "All runners use sh as the shell (bash avoided per VAOS infrastructure rules)"
+  - "Every runner must emit Agent: <id> | Task: <id> | Cycle: <n> | Status: <status> on every response"
+  - "Every response must end with Skill: <name> | Tool: <tool> | Timestamp: <ISO8601> | Validation: <pass|fail>"
+  - "Unit-based output — all responses emit discrete units with inline | delimiter"
+  - "No interactive prompts in runners; timeout_ms required for long-running commands"
+
+commands:
+  va-skill-load: "sh runners/va-skill-runner.sh <skill-name>"
+  va-pipeline: "sh runners/va-pipeline-runner.sh --stage <name>"
+  va-template: "sh tools/va-template-processor.sh <template> <key>=<value>..."
+  va-shell: "sh runners/va-shell-runner.sh <command>"

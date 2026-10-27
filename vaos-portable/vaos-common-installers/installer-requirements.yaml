@@ -1,0 +1,263 @@
+# VAOS Installer Requirements Specification
+# VAOS / TheAvaGroup
+
+id: vaos-installers-requirements
+version: "1.1.0"
+status: active
+owner: Senior.Anatoly
+
+description: |
+  VAOS portable installer requirements for external tool integration.
+  Each installer is represented as <name>-cli.sh entry point.
+  All installers MUST implement: check, install, execute commands.
+
+runtimes:
+  base:
+    - id: bun
+      name: Bun Runtime
+      description: JavaScript runtime, drop-in Node.js replacement
+      language: javascript
+      version_cmd: bun --version
+      install_cmd: curl -fsSL https://bun.sh/install | bash
+      execute_cmd: bun
+      validation: "^\\d+\\.\\d+\\.\\d+$"
+
+    - id: sh
+      name: Shell
+      description: POSIX shell interpreter (system base)
+      language: sh
+      version_cmd: sh --version 2>&1 || true
+      install_cmd: system-package
+      execute_cmd: sh
+      validation: "version"
+
+    - id: pnpm
+      name: PNPM
+      description: Fast, disk space efficient package manager
+      language: javascript
+      version_cmd: pnpm --version
+      install_cmd: npm install -g pnpm
+      execute_cmd: pnpm
+      validation: "^\\d+\\.\\d+(\\.\\d+)?$"
+
+  optional:
+    - id: uv
+      name: UV
+      description: Ultra-fast Python package manager
+      language: python
+      version_cmd: uv --version
+      install_cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+      execute_cmd: uv
+      validation: "^\\d+\\.\\d+(\\.\\d+)?$"
+
+installers:
+
+  - id: playwright
+    name: Playwright CLI Installer
+    description: Playwright browser automation and testing tool installer
+    cli_entry: playwright-cli.sh
+    category: testing
+    runtime: bun
+    dependencies:
+      - nodejs
+      - npm
+      - bun
+    env_vars:
+      - PLAYWRIGHT_BROWSERS_PATH
+    commands:
+      check:
+        desc: Check Playwright installation
+        cmd: npx playwright --version
+      install:
+        desc: Install Playwright and browsers
+        cmd: npx playwright install --with-deps
+      execute:
+        desc: Execute Playwright
+        cmd: npx playwright
+      runtime-check:
+        desc: Check runtime dependencies
+        cmd: bun --version && pnpm --version
+      runtime-install:
+        desc: Install runtime dependencies
+        cmd: bun && pnpm install -g pnpm
+
+  - id: workspace
+    name: Workspace Manager Installer
+    description: VA workspace initialization and management tool
+    cli_entry: workspace-cli.sh
+    category: workspace
+    runtime: sh
+    dependencies:
+      - bash
+      - coreutils
+      - rsync
+    env_vars:
+      - WORKSPACE_ROOT
+      - VAOS_ROOT
+    commands:
+      check:
+        desc: Check workspace tools
+        cmd: echo "workspace-ready"
+      install:
+        desc: Install workspace structure
+        cmd: mkdir -p workspaces
+      execute:
+        desc: Execute workspace command
+        cmd: workspace
+      runtime-check:
+        desc: Check runtime dependencies
+        cmd: sh --version 2>&1 || echo "sh-available"
+      runtime-install:
+        desc: Install runtime dependencies
+        cmd: echo "System shell required"
+
+  - id: terrasoft-localdev
+    name: TerraSoft Local Development Installer
+    description: Terra application local development environment setup
+    cli_entry: terrasoft-localdev-cli.sh
+    category: development
+    runtime: bun
+    dependencies:
+      - nodejs >= 18
+      - npm
+      - pnpm
+      - bun
+    env_vars:
+      - TERRA_ROOT
+      - NODE_ENV=development
+    commands:
+      check:
+        desc: Check Terra installation
+        cmd: node --version
+      install:
+        desc: Install Terra dev environment
+        cmd: pnpm install
+      execute:
+        desc: Execute Terra dev server
+        cmd: pnpm start:dev
+      runtime-check:
+        desc: Check runtime dependencies
+        cmd: node --version && pnpm --version && bun --version
+      runtime-install:
+        desc: Install runtime dependencies
+        cmd: bun install && pnpm install
+
+  - id: m2m-tools
+    name: M2M Tools Suite Installer
+    description: M2M workspace tools and utilities installer
+    cli_entry: m2m-tools-cli.sh
+    category: tooling
+    runtime: sh
+    dependencies:
+      - bash >= 4
+      - rsync
+      - git
+    env_vars:
+      - M2M_ROOT
+      - M2M_TOOLS_DIR
+    commands:
+      check:
+        desc: Check M2M tools
+        cmd: rsync --version | head -1 && git --version | head -1
+      install:
+        desc: Install M2M tools
+        cmd: echo "M2M tools structure ready"
+      execute:
+        desc: Execute M2M tools
+        cmd: _PRJ-OPS/tools/sync-projects.sh
+      runtime-check:
+        desc: Check runtime dependencies
+        cmd: rsync --version | head -1
+      runtime-install:
+        desc: Install runtime dependencies
+        cmd: apt-get update && apt-get install -y rsync git
+
+  - id: scout-scanner-analyzer
+    name: Scout Scanner Analyzer Installer
+    description: Code scanning, analysis and security auditing tool
+    cli_entry: scout-scanner-analyzer-cli.sh
+    category: analysis
+    runtime: uv
+    dependencies:
+      - bash
+      - python3 >= 3.8
+      - uv
+    env_vars:
+      - SCOUT_ROOT
+      - PYTHONPATH
+    commands:
+      check:
+        desc: Check Scout installation
+        cmd: python3 --version
+      install:
+        desc: Install Scout scanner
+        cmd: uv pip install scout
+      execute:
+        desc: Execute Scout scan
+        cmd: scout scan
+      runtime-check:
+        desc: Check runtime dependencies
+        cmd: python3 --version && uv --version
+      runtime-install:
+        desc: Install runtime dependencies
+        cmd: curl -LsSf https://astral.sh/uv/install.sh | sh && uv python install 3.8
+
+structure:
+  entry_point_pattern: "<id>-cli.sh"
+  install_root: "$VAOS_ROOT/installers"
+  config_dir: "$VAOS_ROOT/config/installers"
+  log_dir: "$VAOS_ROOT/logs/installers"
+  runtime_dir: "$VAOS_ROOT/runtimes"
+
+entry_points:
+  base_shell: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+  env_setup: |
+    VAOS_ROOT="${VAOS_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+    export VAOS_ROOT
+
+  error_handler: |
+    error() { echo "[ERROR] $1" >&2; exit 1; }
+    warn() { echo "[WARN] $1"; }
+    require() { command -v "$1" >/dev/null 2>&1 || error "Required: $1"; }
+
+common_commands:
+  check:
+    desc: "Check installed version / availability"
+    pattern: "<cli> --version || <cli> version"
+  install:
+    desc: "Install runtime or tool"
+    pattern: "install command from requirements"
+  execute:
+    desc: "Execute the tool"
+    pattern: "run tool with arguments"
+  run:
+    desc: "Run script by runtime"
+    pattern: "<runtime> <script> [args...]"
+  runtime-check:
+    desc: "Check runtime dependencies"
+    pattern: "verify runtime versions"
+  runtime-install:
+    desc: "Install runtime dependencies"
+    pattern: "install required runtimes"
+  self-check:
+    desc: "Run self-diagnostic check"
+    pattern: "check self-integrity, paths, dependencies"
+  self-status:
+    desc: "Show component status"
+    pattern: "list component status"
+  self-version:
+    desc: "Show component version"
+    pattern: "show version info"
+
+validation:
+  checklist:
+    - "All CLIs implement check command"
+    - "All CLIs implement install command"
+    - "All CLIs implement execute command"
+    - "All CLIs implement runtime-check command"
+    - "All CLIs implement runtime-install command"
+    - "Runtimes match VAOS BASE languages"
+    - "Exit codes are proper (0 success, non-zero failure)"

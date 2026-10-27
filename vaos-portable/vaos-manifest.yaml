@@ -1,0 +1,98 @@
+languages:
+  formal:
+    - bnf, grammar definitions, BASE
+    - regex, string matching, BASE
+    - jsonschema12, json validation, BASE
+
+  serial:
+    - .conf, base configuration files, BASE
+    - .txt, sequential data, OPTIONAL
+    - .yaml, master data serialization, BASE
+    - .md, data representation, BASE
+    - .csv, data storage, BASE
+    - .json, data serialization, OPTIONAL
+
+  code:
+    - javascript, runtime, BASE
+    - typescript, compile-time, BASE
+    - python, scripting, OPTIONAL
+    - rust, compile-time performance, OPTIONAL
+    - pseudocode, interpretable non executable, OPTIONAL
+
+  infrastructure:
+    - sh, shell script, BASE
+    - bash, shell script, AVOID
+
+  symbolic:
+    - unicode, character encoding, BASE
+    - latex, mathematical notation, RESTRICTED
+
+
+runtime:
+  base:
+  - bun
+  - sh
+  - pnpm
+  optional:
+  - uv
+
+
+structure:
+  vaos-portable:
+    common_dirs:
+      skills:    vaos-common-skills
+      schemas:   vaos-common-schemas
+      specs:     vaos-common-specs
+      templates: vaos-common-templates
+      standards: vaos-common-standards
+      tools:     vaos-common-tools
+      runners:   vaos-common-runners
+      rules:     vaos-common-rules
+      installers: vaos-common-installers
+      runtimes:  vaos-common-installers/runtimes
+      patterns:  vaos-common-patterns
+    common_lib: vaos-common-installers/vaos-common-lib.sh
+    registry:   vaos-portable-registry/registry.yaml
+    cli:        vaos-portable-cli.sh
+    configs:
+      self_definition: vaos-self-definition.yaml
+    layers:
+      VORK:      orchestration
+      VAOS:      lifecycle
+      COMPONENTS: registry-templates-schemas
+      TASK:      execution
+
+components:
+  skills:
+    - va-base
+    - va-skill-creator
+    - va-tools-creator
+    - va-experts
+  standards:
+    - va-naming-standards
+  tools:
+    - va-base-tools
+  runners:
+    - va-unified-runners
+  rules:
+    - va-rules
+  schemas:
+    - skill-schema
+    - registry-schema
+    - domain-index-schema
+  templates:
+    - domain-definition
+    - template-definition
+  installers:
+    - va-installers
+
+patterns:
+  - va-pattern-definitions
+
+entry_points:
+  cli: vaos-portable-cli.sh
+  skill_loader: vaos-common-tools/tools/va-skill-loader.sh
+  pipeline_runner: vaos-common-runners/runners/va-pipeline-runner.sh
+  pattern-linear:   vaos-common-patterns/scanners/va-linear-scan.sh
+  pattern-multiline: vaos-common-patterns/scanners/va-multiline-scan.sh
+  patterns-def:     vaos-common-patterns/patterns.yaml

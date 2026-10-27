@@ -1,0 +1,18 @@
+# template-definition.template.yaml — Meta-template for authoring new VAOS templates.
+# Rendered by va-template-processor.sh ({{ key }} placeholders).
+# A template declares a signature, defaults, and a body with {{ placeholder }} bindings.
+
+apiVersion: ozco.uva/v1alpha1
+kind: TemplateDefinition
+metadata:
+  id: {{ template_id }}
+  name: {{ template_name }}
+  version: {{ template_version }}
+  status: draft
+spec:
+  signature:
+    - id: {{ param_id }}
+      type: {{ param_type }}
+  defaults: {}
+  body:
+    {{ body_key }}: {{ body_value }}

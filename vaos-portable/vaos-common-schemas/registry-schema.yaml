@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vaos://schemas/registry-schema",
+  "title": "VAOS Registry Schema",
+  "description": "Validates vaos-portable-registry/registry.yaml entries.",
+  "type": "object",
+  "properties": {
+    "workspace": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "manifest": { "type": "string" },
+        "self_definition": { "type": "string" },
+        "registry_version": { "type": "string" }
+      },
+      "required": ["id", "manifest", "registry_version"]
+    },
+    "skills": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "identity": { "type": "string" },
+          "description": { "type": "string" },
+          "path": { "type": "string" },
+          "version": { "type": "string" },
+          "depends_on": { "type": "array" },
+          "owner": { "type": "string" },
+          "domain": { "type": "string" },
+          "files": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["identity", "path", "version"]
+      }
+    },
+    "standards": { "type": "object" },
+    "tools": { "type": "object" },
+    "runners": { "type": "object" },
+    "rules": { "type": "object" }
+  },
+  "required": ["workspace"],
+  "additionalProperties": true
+}

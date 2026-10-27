@@ -1,0 +1,108 @@
+apiVersion: ozco.uva/v1alpha1
+kind: SymbolicMachineSpecification
+metadata:
+  id: ozco.uva.symbolic-template-machine
+  name: UVA Symbolic Template Machine
+  version: 1.0.0
+  status: candidate
+spec:
+  symbols:
+    ≜: Deﬁne
+  structures:
+    Alphabet: Enum(Letter)
+    Symbol: Seq(Alphabet)
+    Pair: ⟨Term,Term⟩
+  patterns:
+    P_pair(s1,s2) -> Pair⟨s1,s2⟩
+    P_wrap["{open}","{close}"](content) -> open content close
+  formalSystem:
+    notation: 𝕃ᵁⱽᴬ
+    definition: ⟨Σ, 𝕋, 𝔸, Γ, ⟦·⟧, 𝕍⟩
+    alphabet: Σ ≜ finite UTF-8 symbol alphabet.
+    terms: 𝕋 ≜ finite set of well-formed symbolic terms.
+    ast: 𝔸 ≜ abstract syntax algebra generated from Σ.
+    environment: Γ ≜ typed environment mapping identifiers to values and types.
+    evaluator: ⟦·⟧ ≜ total deterministic evaluator for valid closed terms.
+    validators: 𝕍 ≜ decidable validator set.
+  machine:
+    id: 𝕄ᵁⱽᴬ
+    definition: ⟨P, Parse, Check, Bind, Expand, Render, Validate⟩
+    input: P ≜ UTF8*.
+    functions:
+      Parse: UTF8* → Result⟨Term, ParseError⟩
+      Check: Term → Result⟨TypedTerm, TypeError⟩
+      Bind: Template × Environment → Result⟨BoundTemplate, BindError⟩
+      Expand: BoundTemplate → Result⟨Model, ExpandError⟩
+      Render: Model → UTF8*
+      Validate: Model → ValidationReport
+    pipeline: Run ≜ Validate ∘ Expand ∘ Bind ∘ Check ∘ Parse.
+    termination: '∀s ∈ UTF8* : Run(s) terminates.'
+    failureMode: Run(s) = Invalid(e) ⇒ ErrorUnit(e).
+  syntax:
+    sort: Sort ::= Id | Text | Bool | Nat | Enum | List⟨Sort⟩ | Map⟨Id,Sort⟩.
+    value: Value ::= String | True | False | Natural | Symbol | Sequence | Record.
+    identifier: Identifier ::= Letter · (Letter | Digit | "_" | "-" | ".")*.
+    variable: Variable ::= "?" · Identifier.
+    parameter: Parameter ::= Identifier ":" Sort.
+    binding: Binding ::= Identifier "↦" Value.
+    environment: Environment ::= "⟨" Binding* "⟩".
+    signature: Signature ::= "Π" ":" "⟨" Parameter* "⟩".
+    defaults: Defaults ::= "Δ" ":" Environment.
+    template: Template ::= "T" "(" Identifier ")" "≜" "⟦" Signature ";" Defaults ";" "↦" Term "⟧".
+    application: Application ::= Identifier "⊳" Environment.
+    record: Record ::= "⟨" Field* "⟩".
+    field: Field ::= Identifier "↦" Term.
+    sequence: Sequence ::= "⟨" Term ("," Term)* "⟩".
+    reference: Reference ::= "@" Identifier.
+    term: Term ::= Value | Variable | Record | Sequence | Reference | Application.
+  semantics:
+    merge: ρ₀ ⊕ ρ ≜ right-biased environment merge.
+    mergeDomain: dom(ρ₀ ⊕ ρ) = dom(ρ₀) ∪ dom(ρ).
+    mergeRight: (ρ₀ ⊕ ρ)(k) = ρ(k) ⇔ k ∈ dom(ρ).
+    mergeLeft: (ρ₀ ⊕ ρ)(k) = ρ₀(k) ⇔ k ∉ dom(ρ) ∧ k ∈ dom(ρ₀).
+    binding: Bind(T(ι),ρ) = Bound(T(ι),ρ₀ ⊕ ρ) ⇔ Defaults(T(ι)) = ρ₀.
+    resolveBound: Resolve(?x,ρ) = ρ(x) ⇔ x ∈ dom(ρ).
+    resolveUnbound: Resolve(?x,ρ) = ⊥ ⇔ x ∉ dom(ρ).
+    expandValue: Expand(Value,ρ) = Value.
+    expandVariable: Expand(?x,ρ) = Resolve(?x,ρ).
+    expandRecord: Expand(⟨k₁↦t₁,…,kₙ↦tₙ⟩,ρ) = ⟨k₁↦Expand(t₁,ρ),…,kₙ↦Expand(tₙ,ρ)⟩.
+    expandSequence: Expand(⟨t₁,…,tₙ⟩,ρ) = ⟨Expand(t₁,ρ),…,Expand(tₙ,ρ)⟩.
+    renderedEvaluation: ⟦T(ι)⟧ρ = Render(Expand(Body(T(ι)),Defaults(T(ι)) ⊕ ρ)).
+  templates:
+    AgentShell:
+      signature: Π:⟨variant:Id,objective:Text,triggers:List⟨Text⟩,pillars:List⟨Id⟩,axiom:Id?,workflow:Id,output:Id⟩.
+      defaults: Δ:⟨triggers↦⟨"UVA:","[Engage Language Wizard Protocol]"⟩,pillars↦⟨Lexic,Grammar,TypeSystem,Syntax,Semantics⟩,workflow↦UVA.FivePillarWorkflow,output↦UVA.CompactOutputPolicy⟩.
+      body: ⟨kind↦Agent,id↦"UVA.LanguageWizard."∘?variant,objective↦?objective,triggers↦?triggers,pillars↦?pillars,axiomRef↦?axiom,workflowRef↦?workflow,outputRef↦?output⟩.
+    RepresentationAxiom:
+      signature: Π:⟨id:Id,name:Text,system:Id,universe:Id,thing:Id,description:Id,membership:Id,representation:Id⟩.
+      defaults: Δ:⟨system↦UVA,universe↦Universe,thing↦Thing,description↦Description,membership↦In,representation↦Represents⟩.
+      body: ⟨kind↦Axiom,id↦?id,name↦?name,formula↦"∀u:"∘?universe∘" ∀t:"∘?thing∘" ("∘?membership∘"(t,u) → ∃d:"∘?description∘"
+        ("∘?representation∘"(d,t) ∧ ⊢"∘?system∘" "∘?representation∘"(d,t)))"⟩.
+    FivePillarWorkflow:
+      signature: Π:⟨grammarNotation:Id,semanticMode:Id,requireTypes:Bool,requireSchema:Bool⟩.
+      defaults: Δ:⟨grammarNotation↦EBNF,semanticMode↦operational,requireTypes↦True,requireSchema↦True⟩.
+      body: ⟨kind↦Workflow,id↦UVA.FivePillarWorkflow,steps↦⟨Scope,Lexic,Grammar,TypeSystem,Syntax,Semantics,Validation,Schema⟩,grammarNotation↦?grammarNotation,semanticMode↦?semanticMode,requireTypes↦?requireTypes,requireSchema↦?requireSchema⟩.
+    CompactOutputPolicy:
+      signature: Π:⟨primary:Id,secondary:List⟨Id⟩,trace:Bool⟩.
+      defaults: Δ:⟨primary↦YAML,secondary↦⟨EBNF,FOL⟩,trace↦True⟩.
+      body: ⟨kind↦OutputPolicy,primary↦?primary,secondary↦?secondary,oneLineOneSentence↦True,traceability↦?trace⟩.
+  validation:
+    requiredParameters: V₁(T,ρ) ≜ RequiredParameters(T) ⊆ dom(Defaults(T) ⊕ ρ).
+    knownParameters: V₂(T,ρ) ≜ dom(ρ) ⊆ Parameters(T).
+    typeCorrectness: 'V₃(T,ρ) ≜ ∀k∈dom(Defaults(T)⊕ρ): TypeOf((Defaults(T)⊕ρ)(k)) = DeclaredType(T,k).'
+    boundVariables: V₄(t,ρ) ≜ FreeVariables(t) ⊆ dom(ρ).
+    uniqueIds: V₅(m) ≜ Unique(IDs(m)).
+    resolvedReferences: V₆(m) ≜ Resolved(References(m)).
+    linePolicy: V₇(m) ≜ OneLineOneSentence(m).
+    acceptance: Accept(T,ρ) ⇔ V₁(T,ρ) ∧ V₂(T,ρ) ∧ V₃(T,ρ) ∧ V₄(Body(T),Defaults(T)⊕ρ) ∧ V₅(Expand(T,ρ)) ∧ V₆(Expand(T,ρ))
+      ∧ V₇(Render(Expand(T,ρ))).
+  instance:
+    id: UVA.LanguageWizard.core
+    binding: ρ(core) ≜ ⟨variant↦core,objective↦"Construct and validate formal DSL specifications.",triggers↦⟨"UVA:","lang-wiz:"⟩,axiom↦URA,workflow↦UVA.FivePillarWorkflow,output↦UVA.CompactOutputPolicy⟩.
+    result: A(core) = ⟨kind↦Agent,id↦UVA.LanguageWizard.core,objective↦"Construct and validate formal DSL specifications.",triggers↦⟨"UVA:","lang-wiz:"⟩,pillars↦⟨Lexic,Grammar,TypeSystem,Syntax,Semantics⟩,axiomRef↦URA,workflowRef↦UVA.FivePillarWorkflow,outputRef↦UVA.CompactOutputPolicy⟩.
+  constraints:
+    machine: Machine = Parse ∘ Check ∘ Bind ∘ Expand ∘ Validate ∘ Render.
+    calculable: Calculable = finite input ∧ finite template ∧ terminating rewrite rules.
+    symbolic: Symbolic = UTF-8 terms ∧ typed bindings ∧ formal expansion semantics.
+    linePolicy: OneLineOneSentence = each executable or declarative line denotes exactly one predicate, rule, equation, type
+      declaration, or binding.

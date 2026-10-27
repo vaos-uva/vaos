@@ -1,0 +1,243 @@
+$schema: "https://ozco.theavagroup.com/schemas/vaos-pattern-definitions.schema.yaml"
+apiVersion: vaos-portable/v1
+kind: PatternDefinitions
+id: va-pattern-definitions
+version: "2.0.0"
+owner: Senior.Anatoly
+description: >
+  Document-pattern definitions for vaos-portable. Defines two structural
+  patterns with distinct detection modes:
+
+    1. linear-SSSW    — check EACH LINE individually.
+       A line starts with a run of 3+ identical separator chars (SSS),
+       optionally followed by whitespace/text (W).
+
+    2. multiline-WSSSW — build a STRING (STR) from the FIRST CHARACTER of
+       each line in document order, then find WSSSW inside STR:
+       W = whitespace, SSS = 3+ identical separator chars.
+       A WSSSW match groups consecutive lines whose first char is the same
+       separator into a section break (notation = SSS, e.g. "###").
+
+  S = separator symbol, one of: # * @ %
+  W = whitespace (space / tab)
+
+  Patterns are runnable by the scanners in vaos-common-patterns/scanners/.
+
+# ---------------------------------------------------------------------------
+# symbols — characters usable as separator / section markers
+# ---------------------------------------------------------------------------
+symbols:
+  - symbol: "#"
+    name: hash
+    description: Markdown heading, comment, section marker
+  - symbol: "*"
+    name: asterisk
+    description: Ruler, emphasis, separator
+  - symbol: "@"
+    name: at
+    description: Tag, marker, anchor
+  - symbol: "%"
+    name: percent
+    description: Comment, disabled line
+
+# ---------------------------------------------------------------------------
+# patterns — two independent detection modes
+# ---------------------------------------------------------------------------
+patterns:
+
+  # -------------------------------------------------------------------------
+  # LINEAR-SSSW
+  # Name       : Linear SSSW Pattern
+  # Mode       : linear — each line is checked independently
+  # Notation   : SSSW  (Separator-Separator-Separator-Whitespace/Word)
+  # Polarity   : line-start anchored (SSS must begin the line)
+  # Definition : A line is a match when it starts with a run of 3 or more
+  #              identical separator chars S (one of #, *, @, %), followed by
+  #              optional whitespace and/or content W.
+  #              The line is S-separated: the separator run is the leading
+  #              structural marker and the remainder is the content.
+  #
+  # Formal (POSIX BRE): ^\([#*@%]\)\1\1+.*
+  #   \1        = separator char S (one of # * @ %)
+  #   \1\1+     = same S repeated → total 3+ separators at line start
+  #   .*        = optional W (whitespace and/or any content to end of line)
+  #
+  # Common uses:
+  #    ### vasily was here   → SSS=### , W='vasily was here'   (heading)
+  #    ---                   → SSS=---  (no space)              (ruler)
+  #    *** emph              → SSS=***, W='emph'               (emphasis)
+  #
+  # Scanner: vaos-common-patterns/scanners/va-linear-scan.sh
+  # -------------------------------------------------------------------------
+  linear-sssw:
+    id: linear-sssw
+    name: Linear SSSW Pattern
+    notation: SSSW
+    mode: linear
+    definition: >
+      A line starting with a run of 3 or more identical separator characters
+      S (one of #, *, @, %) followed by optional whitespace and/or content W.
+      Detection is per-line: no state is carried between lines.
+    symbol-set: ["#", "*", "@", "%"]
+    threshold: 3
+    components:
+      SSS: 3 or more identical separator chars at line start, from {#,*,@,%}
+      W: optional whitespace / content after the SSS run (may be empty)
+    classification:
+      heading: "W = non-empty text"      # e.g. ### vasily was here
+      ruler:   "W = empty (EOL)"          # e.g. ------------
+    regex-bre: '^\([#*@%]\)\1\1+.*'
+    examples:
+      - input: "### vasily was here"
+        matched: true
+        sss: "###"
+        w: "vasily was here"
+        class: heading
+      - input: "----------"
+        matched: true
+        sss: "----------"
+        w: "(empty)"
+        class: ruler
+      - input: "*** note"
+        matched: true
+        sss: "***"
+        w: "note"
+        class: heading
+      - input: "# plain comment"
+        matched: false
+        reason: "only 1 leading #"
+      - input: "** only two stars"
+        matched: false
+        reason: "only 2 leading * (threshold 3)"
+
+  # -------------------------------------------------------------------------
+  # MULTILINE-WSSSW
+  # Name       : Multiline WSSSW Pattern
+  # Mode       : multiline — state across lines via STR
+  # Notation   : WSSSW  (Whitespace-Separator-Separator-Separator-Whitespace)
+  # Polarity   : section-break — groups consecutive lines by first char
+  # Definition : Build STR = concatenation of the FIRST CHARACTER of each
+  #              line in document order. Then find WSSSW inside STR:
+  #              optional whitespace (W), a run of 3+ identical separator
+  #              chars (SSS), optional whitespace (W).
+  #              A WSSSW match reports lines whose first char is the same
+  #              separator, as a section break with notation SSS.
+  #
+  # Formal (POSIX BRE): [[:space:]]*\([#*@%]\)\1\1+[[:space:]]*
+  #   W1         = leading whitespace chars (spaces/tabs) in STR
+  #   \1         = separator char S
+  #   \1\1+      = same S repeated → total 3+ separators in STR
+  #   W2         = trailing whitespace chars in STR
+  #
+  # Common use (3+ consecutive lines sharing the same first-char separator):
+  #   # end area
+  #   ### title ...
+  #   # start area
+  #     first chars: # # # → STR="###" → WSSSW match → notation "###"
+  #
+  #   # ---
+  #   # ---
+  #   # ---
+  #     first chars: # # # → STR="###" → WSSSW match → notation "###"
+  #
+  # Scanner: vaos-common-patterns/scanners/va-multiline-scan.sh
+  # -------------------------------------------------------------------------
+  multiline-wsssw:
+    id: multiline-wsssw
+    name: Multiline WSSSW Pattern
+    notation: WSSSW
+    mode: multiline
+    definition: >
+      STR is built from the first character of each input line, in document
+      order. A WSSSW match is found inside STR: optional whitespace (W),
+      a run of 3+ identical separator chars (SSS), optional whitespace (W).
+      Each match groups the corresponding consecutive lines into a section
+      break. Notation is the separator repeated (### / *** / @@@ / %%%).
+    symbol-set: ["#", "*", "@", "%"]
+    threshold: 3
+    components:
+      W1: leading whitespace chars in STR (before SSS run)
+      SSS: run of 3+ identical separator chars in STR
+      W2: trailing whitespace chars in STR (after SSS run)
+    regex-bre: '[[:space:]]*\([#*@%]\)\1\1+[[:space:]]*'
+    examples:
+      - input-lines:
+          - "# end area"
+          - "### title ..."
+          - "# start area"
+        str: "###"
+        matched: true
+        w1: "(empty)"
+        sss: "###"
+        w2: "(empty)"
+        notation: "###"
+        class: section-break
+      - input-lines:
+          - "# ---"
+          - "# ---"
+          - "# ---"
+        str: "###"
+        matched: true
+        w1: "(empty)"
+        sss: "###"
+        w2: "(empty)"
+        notation: "###"
+        class: section-break
+      - input-lines:
+          - "# a"
+          - "# b"
+        str: "##"
+        matched: false
+        reason: "run length 2 < threshold 3"
+      - input-lines:
+          - "# a"
+          - "* b"
+          - "# c"
+        str: "#*#"
+        matched: false
+        reason: "mixed separator chars break the run"
+
+# ---------------------------------------------------------------------------
+# scanner definitions — which executable scripts implement each pattern
+# ---------------------------------------------------------------------------
+scanners:
+  linear-sssw:
+    id: va-linear-scan
+    name: VA Linear SSSW Scanner
+    path: vaos-common-patterns/scanners/va-linear-scan.sh
+    executable: true
+    lang: sh
+    mode: linear
+    usage: "sh va-linear-scan.sh <file>|-"
+    output-format: "Unit | Agent: va-pattern-linear-tool-1 | Status: ok|skip|fail"
+    conforms-to:
+      r02-unit-output: true
+      r06-agent-line: true
+      r07-validation-block: true
+
+  multiline-wsssw:
+    id: va-multiline-scan
+    name: VA Multiline WSSSW Scanner
+    path: vaos-common-patterns/scanners/va-multiline-scan.sh
+    executable: true
+    lang: sh
+    mode: multiline
+    usage: "sh va-multiline-scan.sh <file>|-"
+    output-format: "Unit | Agent: va-pattern-multiline-tool-1 | Status: ok|skip|fail"
+    conforms-to:
+      r02-unit-output: true
+      r06-agent-line: true
+      r07-validation-block: true
+
+# ---------------------------------------------------------------------------
+# integration notes
+# ---------------------------------------------------------------------------
+integration:
+  registry-section: patterns
+  manifest-common-dir: vaos-common-patterns
+  self-definition-field: patterns_dir
+  cli-commands:
+    - patterns          # cat vaos-common-patterns/patterns.yaml
+    - pattern-linear    # run linear scanner (va-linear-scan.sh)
+    - pattern-multiline # run multiline scanner (va-multiline-scan.sh)
+  rule-r04-domains: vaos-common-patterns

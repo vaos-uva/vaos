@@ -1,0 +1,185 @@
+# VAOS-Portable — Local Skill Registry
+# Skills and components installed in this vaos-portable workspace
+
+workspace:
+  id: vaos-portable
+  manifest: vaos-manifest.yaml
+  self_definition: vaos-self-definition.yaml
+  registry_version: "1.0.0"
+
+skills:
+  va-base:
+    identity: va-base
+    description: Entry point and router for all VA skills. Contains routing, workflow, and shared conventions.
+    path: vaos-common-skills/va-base/SKILL.md
+    version: "3.1.0"
+    depends_on: []
+    owner: VAOS Core
+    domain: base
+    files:
+      - vaos-common-skills/va-base/SKILL.md
+      - vaos-common-skills/va-base/common.md
+
+  va-skill-creator:
+    identity: va-skill-creator
+    description: Creates VA framework skills.
+    path: vaos-common-skills/va-skill-creator/SKILL.md
+    version: "1.0.0"
+    depends_on:
+      - skill:va-base
+    owner: Senior.Anatoly
+    domain: development
+    files:
+      - vaos-common-skills/va-skill-creator/SKILL.md
+
+  va-tools-creator:
+    identity: va-tools-creator
+    description: Creates VA tools conforming to VA standards.
+    path: vaos-common-skills/va-tools-creator/SKILL.md
+    version: "1.0.0"
+    depends_on:
+      - skill:va-base
+    owner: Senior.Anatoly
+    domain: development
+    files:
+      - vaos-common-skills/va-tools-creator/SKILL.md
+
+  va-experts:
+    identity: va-experts
+    description: Senior/Servant delegation framework for domain-specific work.
+    path: vaos-common-skills/va-experts/SKILL.md
+    version: "1.0.0"
+    depends_on:
+      - skill:va-base
+    owner: Senior.Alexandr
+    domain: experts
+    files:
+      - vaos-common-skills/va-experts/SKILL.md
+
+standards:
+  va-naming-standards:
+    identity: va-naming-standards
+    description: Naming standards for VA skills, ids, files, and config keys.
+    path: vaos-common-standards/naming-standards.yaml
+    version: "1.0.0"
+    owner: Senior.Anatoly
+    domain: conventions
+
+tools:
+  va-base-tools:
+    identity: va-base-tools
+    description: Base VA tools conforming to the Lambda pattern and unit output rules.
+    path: vaos-common-tools/base-tools.yaml
+    version: "1.0.0"
+    owner: Senior.Anatoly
+    domain: tools
+    files:
+      - vaos-common-tools/tools/va-skill-loader.sh
+      - vaos-common-tools/tools/va-registry-reader.sh
+      - vaos-common-tools/tools/va-unit-validator.sh
+      - vaos-common-tools/tools/va-template-processor.sh
+
+runners:
+  va-unified-runners:
+    identity: va-unified-runners
+    description: Unified VA runner definitions (skill, pipeline, template, shell).
+    path: vaos-common-runners/unified-runners.yaml
+    version: "1.0.0"
+    owner: Senior.Anatoly
+    domain: execution
+    files:
+      - vaos-common-runners/runners/va-skill-runner.sh
+      - vaos-common-runners/runners/va-pipeline-runner.sh
+      - vaos-common-runners/runners/va-shell-runner.sh
+
+rules:
+  va-rules:
+    identity: va-rules
+    description: VA governance rules (dependency, unit output, determinism, registration).
+    path: vaos-common-rules/rules.yaml
+    executable: vaos-common-rules/va-rules-executor.sh
+    version: "1.0.0"
+    owner: Senior.Anatoly
+    domain: governance
+
+schemas:
+  skill-schema:
+    identity: skill-schema
+    path: vaos-common-schemas/skill-schema.yaml
+    validation: skill definitions
+  registry-schema:
+    identity: registry-schema
+    path: vaos-common-schemas/registry-schema.yaml
+    validation: registry entries
+  domain-index-schema:
+    identity: domain-index-schema
+    path: vaos-common-schemas/domain-index-schema.yaml
+    validation: domain index files
+
+templates:
+  domain-definition:
+    identity: domain-definition
+    path: vaos-common-templates/domain-definition.template.yaml
+  template-definition:
+    identity: template-definition
+    path: vaos-common-templates/template-definition.template.yaml
+
+patterns:
+  va-pattern-definitions:
+    identity: va-pattern-definitions
+    description: Document pattern definitions — linear SSSW and multiline WSSSW — with executable scanners.
+    path: vaos-common-patterns/patterns.yaml
+    version: "2.0.0"
+    owner: Senior.Anatoly
+    domain: patterns
+    files:
+      - vaos-common-patterns/patterns.yaml
+      - vaos-common-patterns/scanners/va-linear-scan.sh
+      - vaos-common-patterns/scanners/va-multiline-scan.sh
+
+installers:
+  va-installers:
+    identity: va-installers
+    description: VAOS portable installer requirements for external tool integration with runtime management
+    path: vaos-common-installers/installer-requirements.yaml
+    version: "1.1.0"
+    owner: Senior.Anatoly
+    domain: tooling
+    commands:
+      - check           # Check installed version
+      - install         # Install tool
+      - execute         # Execute tool command
+      - run             # Run script by runtime
+      - runtime-check   # Check runtime dependencies
+      - runtime-install # Install runtime dependencies
+      - self-check      # Self-diagnostic check
+      - self-status     # Component status
+      - self-version    # Component version
+    runtimes:
+      base:
+        - bun           # JavaScript runtime
+        - sh            # Shell
+        - pnpm          # Package manager
+      optional:
+        - uv            # Python package manager
+    runtime_manager:
+      path: vaos-common-installers/runtimes/vaos-runtime-manager.sh
+      commands:
+        - check         # Check runtime
+        - install       # Install runtime
+        - list          # List all runtimes
+        - run           # Execute by runtime
+        - self-check    # Self-diagnostic
+        - self-status   # Component status
+        - self-version  # Component version
+        - version       # Manager version
+    files:
+      - vaos-common-installers/vaos-common-lib.sh       # Common library
+      - vaos-common-installers/installer-requirements.yaml
+      - vaos-common-installers/playwright-cli.sh
+      - vaos-common-installers/workspace-cli.sh
+      - vaos-common-installers/terrasoft-localdev-cli.sh
+      - vaos-common-installers/m2m-tools-cli.sh
+      - vaos-common-installers/scout-scanner-analyzer-cli.sh
+      - vaos-common-installers/runtimes/vaos-runtime-manager.sh
+      - vaos-common-installers/runtimes/runtimes.yaml

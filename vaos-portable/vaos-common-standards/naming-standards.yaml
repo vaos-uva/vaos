@@ -1,0 +1,69 @@
+# Naming Standards — VA Framework Conventions
+# Sourced from: va-base/common.md#Naming-Conventions
+# Framework: VAOS / TheVaGroup | Version: 1.0.0
+
+id: va-naming-standards
+domain: conventions
+layer: COMPONENTS
+version: "1.0.0"
+owner: Senior.Anatoly
+
+conventions:
+
+  skill_names:
+    pattern: lowercase-hyphenated
+    examples:
+      - va-base
+      - va-skill-creator
+      - va-code-analyzer
+      - va-experts
+    rule: "All skill identities use lowercase, hyphenated format. No underscores, no mixed case."
+
+  senior_ids:
+    pattern: "Senior.<FirstName>"
+    examples:
+      - Senior.Anatoly
+      - Senior.Alexandr
+    rule: "Senior IDs follow Senior.<Name> format. Used for ownership attribution in SKILL.md frontmatter."
+
+  expert_ids:
+    pattern: "Expert.<Domain>"
+    examples:
+      - Expert.Math
+      - Expert.Physics
+      - Expert.Language
+    rule: "Expert IDs follow Expert.<Domain> format. Domain specialization."
+
+  unit_ids:
+    pattern: "{SeniorOrExpert}.{sequence}"
+    examples:
+      - Senior.Anatoly.001
+      - Senior.Alexandr.001
+      - Expert.Math.001
+    rule: "Unit IDs are scoped to their owner (Senior or Expert) with zero-padded sequence number."
+
+  senior_id_format: "Senior.<Name>"
+  expert_id_format: "Expert.<Domain>"
+  unit_id_format: "<Owner>.<NNN>"
+  sequence_padding: 3
+  separator: "."
+
+  additional_rules:
+    - "Skill names: lowercase, hyphenated, no underscores (va-skill-creator not va_skill_creator)"
+    - "File names: match the identity of the artifact they contain"
+    - "Directory names: lowercase, hyphenated or underscore-delimited"
+    - "Config keys: lowercase, hyphenated or dot-notation"
+    - "Schema $id: kebab-case or dot-notation matching domain hierarchy"
+    - "No national characters in identifiers; use ASCII-safe transliteration"
+
+  case_rules:
+    skill_identity: lowercase-hyphenated
+    senior_id: "PascalCase.SpecificName"
+    expert_id: "PascalCase.DomainName"
+    unit_id: "PascalCase.Name.NNN"
+    file_path: lowercase-hyphenated
+    config_key: lowercase-hyphenated
+    schema_id: lowercase-hyphenated
+    class_name: PascalCase
+    function_name: camelCase
+    constant: SCREAMING_SNAKE_CASE

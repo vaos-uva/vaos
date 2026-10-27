@@ -1,0 +1,114 @@
+# Rules — VA Framework Governance Rules
+# Sourced from: va-base/SKILL.md#Rules + common.md#Validation-Checklist
+# Framework: VAOS / TheVaGroup | Version: 1.0.0
+
+id: va-rules
+domain: governance
+layer: VORK
+version: "1.0.0"
+owner: Senior.Anatoly
+executable: va-rules-executor.sh
+
+rules:
+
+  - id: r01
+    name: mandatory-va-base-dependency
+    rule: "Every VA skill MUST declare depends_on: [skill:va-base] in its frontmatter"
+    enforcement: registry-validation
+    ensures:
+      - shared_conventions_loaded
+      - routing_table_available
+      - unit_response_format_enforced
+      - agent_introduction_protocol_active
+
+  - id: r02
+    name: unit-based-output
+    rule: "All responses emit discrete units with inline | delimiter"
+    format: 'Unit {unitID}: <Operation> | Field1: {{ value1 }} | ... | Status: {{ status }} | Skill: {{ name }} | Tool: {{ tool }} | Timestamp: {{ timestamp }} | Validation: {{ validation }}'
+    enforcement: validator
+
+  - id: r03
+    name: determinism
+    rule: "Identical inputs produce identical outputs"
+    enforcement: regression-testing
+
+  - id: r04
+    name: domain-isolation
+    rule: "Skills and units operate within their domain only"
+    enforcement: schema-validation
+
+  - id: r05
+    name: schema-validation
+    rule: "Every artifact is validated against its schema at every boundary"
+    enforcement: ajv-draft-2020-12
+
+  - id: r06
+    name: agent-introduction
+    rule: "Every response MUST start with an agent introduction line"
+    format: "🔹 Agent: <agent-id> | Task: <task-id> | Cycle: <cycle-n> | Status: <status>"
+    agent_id_format: "<skill-name>-<role>-<instance>"
+    example: "va-auditor-auditor-1"
+
+  - id: r07
+    name: response-info-block
+    rule: "Every response MUST end with a trailing info block"
+    format: |
+      Skill: <skill-name>
+      Tool: <tool-name>
+      Timestamp: <ISO8601>
+      Validation: <pass|fail>
+
+  - id: r08
+    name: path-and-id-mandatory
+    rule: "Every response must include the path name and id of the artifact/unit"
+    enforcement: validator
+
+  - id: r09
+    name: templates-not-manual
+    rule: "Always create artifacts from registered templates, never manual boilerplate"
+    template_registry: .agents/registry/templates/
+    enforcement: va-tools-creator / va-skill-creator
+
+  - id: r10
+    name: registry-location
+    rule: "Project-specific registries live in project .agents/; global/portable artifacts live in ~/.agents/registry/"
+    enforcement: registry-validation
+
+  - id: r11
+    name: cli-registry-base-config-manager
+    rule: "Each CLI must have a registry, base configuration by type (n-config), and be operated by a defined manager"
+    enforcement: registry-validation
+    requirements:
+      - cli_has_registry: true
+      - cli_base_config_by_type: true
+      - cli_operated_by_defined_manager: true
+    applies_to: ["cli", "command-line-interface"]
+
+  - id: r12
+    name: separation_of_concerns
+    rule: |
+      Every VAOS unit, task, component, and config MUST be classified across three axes:
+      BaseAxis: [Lifecycle | Data | Operations | Execution]
+      TimeAxis: [CompileTime | BuildTime | InitTime | RunTime]
+      PurposeAxis: [Master | Foundation | Knowlege | Data | Metrics]
+      No unit may have more than one value per axis simultaneously.
+    enforcement: vaos-runtime-rules.yaml (separation_of_concerns section)
+    severity: [P1, P2, P3]
+    verify_on_commit: true
+    authority: Senior.Natasha
+
+validation_checklist:
+  - "Unit-based output"
+  - "Every entity prints with its unique id (r08)"
+  - "Every entity is produced from a registered template, never manual boilerplate (r09)"
+  - "Deterministic behavior (r03)"
+  - "Domain-isolated (r04)"
+  - "Schema-validated (r05)"
+  - "Agent state line present (r06)"
+  - "Response info block present (r07)"
+
+layers:
+  VORK: "Orchestration, Senior/Expert selection"
+  VAOS: "Lifecycle management, context binding"
+  COMPONENTS: "Registry, templates, schemas"
+  TASK: "Execution, delegation sequences"

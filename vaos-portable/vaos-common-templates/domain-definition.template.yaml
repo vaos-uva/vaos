@@ -1,0 +1,22 @@
+# domain-definition.template.yaml — Template for authoring VAOS domain definitions.
+# Rendered by va-template-processor.sh ({{ key }} placeholders).
+# See vaos-common-specs/ozco.uva.symbolic-template-machine.yaml for the machine spec.
+
+apiVersion: ozco.uva/v1alpha1
+kind: DomainDefinition
+metadata:
+  id: {{ domain_id }}
+  name: {{ domain_name }}
+  version: {{ domain_version }}
+  status: draft
+spec:
+  entities:
+    - id: {{ entity_id }}
+      name: {{ entity_name }}
+  relations:
+    - id: {{ relation_id }}
+      from: {{ relation_from }}
+      to: {{ relation_to }}
+  axioms:
+    - id: {{ axiom_id }}
+      formula: {{ axiom_formula }}

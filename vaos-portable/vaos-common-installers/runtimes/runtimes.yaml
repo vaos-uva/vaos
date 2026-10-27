@@ -1,0 +1,63 @@
+# VAOS Runtime Definitions
+# VAOS / TheAvaGroup
+
+runtimes:
+  base:
+    - id: bun
+      name: Bun Runtime
+      description: JavaScript runtime, drop-in Node.js replacement
+      language: javascript
+      version_cmd: bun --version
+      install_cmd: curl -fsSL https://bun.sh/install | bash
+      execute_cmd: bun
+      validation: "^\\d+\\.\\d+\\.\\d+$"
+
+    - id: sh
+      name: Shell
+      description: POSIX shell interpreter (system base)
+      language: sh
+      version_cmd: sh --version 2>&1 || true
+      install_cmd: system-package
+      execute_cmd: sh
+      validation: "version"
+
+    - id: pnpm
+      name: PNPM
+      description: Fast, disk space efficient package manager
+      language: javascript
+      version_cmd: pnpm --version
+      install_cmd: npm install -g pnpm
+      execute_cmd: pnpm exec
+      validation: "^\\d+\\.\\d+(\\.\\d+)?$"
+
+  optional:
+    - id: uv
+      name: UV
+      description: Ultra-fast Python package manager
+      language: python
+      version_cmd: uv --version
+      install_cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+      execute_cmd: uv run
+      validation: "^\\d+\\.\\d+(\\.\\d+)?$"
+
+commands:
+  check:
+    desc: "Check runtime availability"
+    pattern: "<runtime> --version"
+    
+  install:
+    desc: "Install runtime"
+    pattern: "runtime-specific install command"
+    
+  execute:
+    desc: "Execute script by runtime"
+    pattern: "<runtime> <script> [args...]"
+    
+  list:
+    desc: "List all runtimes with status"
+    pattern: "check all runtimes"
+
+validation:
+  - "All BASE runtimes return proper exit codes"
+  - "Missing runtimes return non-zero exit from check"
+  - "execute_cmd uses correct runtime for script type"

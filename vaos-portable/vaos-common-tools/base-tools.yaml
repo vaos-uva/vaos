@@ -1,0 +1,79 @@
+# Base Tools — VA Framework Tool Definitions
+# Sourced from: va-tools-creator/SKILL.md + vaos-manifest.yaml
+# Framework: VAOS / TheVaGroup | Version: 1.0.0
+
+id: va-base-tools
+domain: tools
+layer: COMPONENTS
+version: "1.0.0"
+owner: Senior.Anatoly
+
+description: >
+  Fundamental VA tools that every vaos-portable workspace carries.
+  All tools conform to the Lambda<Ctx, Usr, Cfg, R> signature and produce
+  unit-based output validated by AJV JSON Schema 2020-12.
+
+runtimes:
+  base:
+    - bun
+    - sh
+    - pnpm
+  optional:
+    - uv
+
+base_tools:
+
+  - identity: va-skill-loader
+    type: tool
+    language: shell
+    runtime: sh
+    description: Loads a VA skill from the portable bundle and prints its SKILL.md
+    entry: tools/va-skill-loader.sh
+    args:
+      - skill-name
+
+  - identity: va-registry-reader
+    type: tool
+    language: shell
+    runtime: sh
+    description: Reads and formats the local VA registry (section filter optional)
+    entry: tools/va-registry-reader.sh
+    args:
+      - section
+
+  - identity: va-unit-validator
+    type: tool
+    language: shell
+    runtime: sh
+    description: Validates that input text conforms to the VA unit-output format
+    entry: tools/va-unit-validator.sh
+
+  - identity: va-shell-runner
+    type: tool
+    language: shell
+    runtime: sh
+    description: Generic shell command runner with unit output
+    entry: tools/va-shell-runner.sh
+
+  - identity: va-template-processor
+    type: tool
+    language: shell
+    runtime: sh
+    description: Binds spec + params to VA templates using simple substitution
+    entry: tools/va-template-processor.sh
+
+lambda_signature:
+  notation: "Lambda<Ctx, Usr, Cfg, R>"
+  ctx: "{ registry, validator, log }"
+  usr: "{ spec: <Spec> }"
+  cfg: "{ <config> }"
+  R: "{ unit: UnitResponse, validation: ValidationResult }"
+
+validation:
+  every_tool_must:
+    - conform_to_va_base_conventions
+    - produce_unit_based_output
+    - be_deterministic
+    - be_domain_isolated
+    - be_schema_validated
+    - be_registered_in_components

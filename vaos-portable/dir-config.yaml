@@ -1,0 +1,71 @@
+# vaos-portable/dir-config.yaml
+# Local config for vaos-portable component workspace
+# Extends workspace-level dir-config.yaml
+
+based_on: ../dir-config.yaml
+
+directories:
+  VAOS.executor:
+    - ./vaos-portable
+
+  VAOS.fs:
+    - ./.vaos
+
+  VAOS.runtime:
+    - ./.vaos/active-plans
+    - ./.vaos/audit-reports
+    - ./.vaos/issue-tracker
+    - ./.vaos/quality-gates
+    - ./.vaos/strategic-goals
+    - ./.vaos/project-roadmaps
+
+  domains:
+    - ./domains-definitions
+
+runtime:
+  vaos:
+    config: ./.vaos/vaos-config.yaml
+  plans:
+    path: ./.vaos/active-plans
+  reports:
+    path: ./.vaos/audit-reports
+  tracker:
+    path: ./.vaos/issue-tracker
+  gates:
+    path: ./.vaos/quality-gates
+  goals:
+    path: ./.vaos/strategic-goals
+  roadmaps:
+    path: ./.vaos/project-roadmaps
+
+skills:
+  va-base:
+    path: ./vaos-common-skills/va-base
+    type: base
+    entry: SKILL.md
+    common: common.md
+    version: "3.1.0"
+
+standards:
+  va-naming-standards:
+    path: ./vaos-common-standards
+    type: standards
+    entry: naming-standards.yaml
+
+tools:
+  va-base-tools:
+    path: ./vaos-common-tools
+    type: tools
+    entry: base-tools.yaml
+
+runners:
+  va-unified-runners:
+    path: ./vaos-common-runners
+    type: runners
+    entry: unified-runners.yaml
+
+rules:
+  va-rules:
+    path: ./vaos-common-rules
+    type: rules
+    entry: rules.yaml

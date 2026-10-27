@@ -1,0 +1,80 @@
+# VAOS-Portable — Self-Definition
+# Canonical definition of the vaos-portable distribution.
+
+vaos:
+  id: vaos-portable
+  version: "1.2.0"
+  description: Self-contained portable VAOS distribution. All routing, skills, tools, runners, rules, templates, schemas, and installers are bundled locally.
+  framework: VAOS / TheVaGroup
+  layers:
+    VORK: "Orchestration, Senior/Expert selection"
+    VAOS: "Lifecycle management, context binding"
+    COMPONENTS: "Registry, templates, schemas"
+    TASK: "Execution, delegation sequences"
+
+common:
+  skills_dir: vaos-common-skills
+  schemas_dir: vaos-common-schemas
+  specs_dir: vaos-common-specs
+  templates_dir: vaos-common-templates
+  standards_dir: vaos-common-standards
+  tools_dir: vaos-common-tools
+  runners_dir: vaos-common-runners
+  rules_dir: vaos-common-rules
+  installers_dir: vaos-common-installers
+  registry_dir: vaos-portable-registry
+  runtime_dir: vaos-common-installers/runtimes
+  patterns_dir: vaos-common-patterns
+  common_lib: vaos-common-installers/vaos-common-lib.sh
+
+components:
+  skills:
+    - va-base
+    - va-skill-creator
+    - va-tools-creator
+    - va-experts
+  standards:
+    - va-naming-standards
+  tools:
+    - va-base-tools
+  runners:
+    - va-unified-runners
+  rules:
+    - va-rules
+  schemas:
+    - skill-schema
+    - registry-schema
+    - domain-index-schema
+  templates:
+    - domain-definition
+    - template-definition
+  installers:
+    - va-installers
+    - playwright
+    - workspace
+    - terrasoft-localdev
+    - m2m-tools
+    - scout-scanner-analyzer
+    - runtime-manager
+  patterns:
+    - va-pattern-definitions
+
+self_contained:
+  routing: true
+  tools_implemented: true
+  runners_implemented: true
+  templates_populated: true
+  schemas_present: true
+  terminology: canonical
+
+registry: vaos-portable-registry/registry.yaml
+manifest: vaos-manifest.yaml
+
+entry_points:
+  routing: vaos-common-skills/va-base/SKILL.md
+  conventions: vaos-common-skills/va-base/common.md
+  tools: vaos-common-tools/tools/
+  runners: vaos-common-runners/runners/
+  patterns: vaos-common-patterns/patterns.yaml
+  pattern-linear:    vaos-common-patterns/scanners/va-linear-scan.sh
+  pattern-multiline: vaos-common-patterns/scanners/va-multiline-scan.sh

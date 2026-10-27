@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vaos://schemas/skill-schema",
+  "title": "VA Skill Definition Schema",
+  "description": "Validates VA skill definition files (SKILL.md frontmatter / skill.yaml).",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "description": { "type": "string" },
+    "va_framework": { "type": "boolean", "enum": [true] },
+    "va_domain": { "type": "string" },
+    "senior_ownership": { "type": "string" },
+    "depends_on": {
+      "type": "array",
+      "items": { "enum": ["skill:va-base"] }
+    }
+  },
+  "required": ["name", "description", "va_framework", "depends_on"],
+  "additionalProperties": true
+}
