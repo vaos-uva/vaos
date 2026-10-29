@@ -48,6 +48,59 @@ base_tools:
     description: Validates that input text conforms to the VA unit-output format
     entry: tools/va-unit-validator.sh
 
+  - identity: va-glagol-parser
+    type: tool
+    language: shell
+    runtime: sh
+    description: >-
+      GlaGol line-oriented parser and symbolic unit builder (UVA): parse,
+      classify, lift, metaclose, scaffolds, selftest
+    entry: tools/glagol.sh
+    args: [command, file]
+
+  - identity: va-kstar-kernel
+    type: tool
+    language: shell
+    runtime: sh
+    description: >-
+      K* POSIX symbolic self-rewrite kernel: pack, check, step, close, evolve,
+      unpack, demo
+    entry: tools/kstar.sh
+    args: [command, lang, rules, word, max-steps]
+
+  - identity: va-kstar-formal
+    type: tool
+    language: shell
+    runtime: sh
+    description: >-
+      K* machine-formal self-rewriter with generated termination certificate
+      (runs the level-2 lift without SymPy runtime dependency)
+    entry: tools/kstar-formal.sh
+    args: [run|rules|languages]
+
+  - identity: va-kstar-tests
+    type: tool
+    language: shell
+    runtime: sh
+    description: POSIX-sh smoke tests for the K* kernel (hierarchy and closure checks)
+    entry: tools/kstar-tests.sh
+
+  - identity: va-glagol-level-2-demo
+    type: tool
+    language: shell
+    runtime: sh
+    description: Glagol level-2 scaffold execution demo
+    entry: tools/glagol-level-2-demo.sh
+
+  - identity: va-m2m-dev-root-cli
+    type: tool
+    language: shell
+    runtime: sh
+    description: >-
+      Generated m2m-dev-root-cli-v1 scaffold (M2M-DEV-ROOT development CLI);
+      documents command groups, does not implement handlers
+    entry: tools/m2m-dev-root-cli.sh
+
   - identity: va-shell-runner
     type: tool
     language: shell
